@@ -129,3 +129,155 @@ async def four(callback: types.CallbackQuery, state: FSMContext):
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
     await callback.message.answer("Что делает оператор continue?", reply_markup=keyboard)
+
+
+@tg_story_router.callback_query(Form.four, F.data == "True")
+async def five(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Form.five)
+    await callback.message.delete_reply_markup()
+    mobs[callback.message.from_user.id] = "Медведь"
+    await callback.message.answer("Правильно!")
+    await callback.message.answer("""И покатился себе дальше; только волк его и видел!
+Катится колобок, а навстречу ему медведь:
+
+— Колобок, колобок! Я тебя съем.
+— Не ешь меня, косолапый! Я тебе на вопросы отвечу и ты меня отпустишь, — сказал колобок""")
+    time.sleep(1)
+    kb = [
+        [
+            types.InlineKeyboardButton(
+                text="Объект, принимающий аргументы и возвращающий значение", callback_data="True")
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="Структура, определяющая поведение объекта", callback_data="False")
+        ]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+    await callback.message.answer("Что такое функция?", reply_markup=keyboard)
+
+
+@tg_story_router.callback_query(Form.five, F.data == "True")
+async def six(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Form.six)
+    await callback.message.delete_reply_markup()
+    await callback.message.answer("Правильно! Следующий вопрос.")
+    time.sleep(1)
+    kb = [
+        [
+            types.InlineKeyboardButton(
+                text="function", callback_data="False")
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="def", callback_data="True")
+        ]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+    await callback.message.answer("Какое ключевое слово используется для создания функции?", reply_markup=keyboard)
+
+
+@tg_story_router.callback_query(Form.six, F.data == "True")
+async def seven(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Form.seven)
+    await callback.message.delete_reply_markup()
+    mobs[callback.message.from_user.id] = "Лис"
+    await callback.message.answer("Правильно!")
+    await callback.message.answer("""И опять укатился, только медведь его и видел!
+Катится, катится «колобок, а навстречу ему лис:
+
+— Здравствуй, колобок! Какой ты хорошенький. Колобок, колобок! Я тебя съем.
+— Не ешь меня, лис! Я тебе на вопросы отвечу и ты меня отпустишь, — сказал колобок:""")
+    time.sleep(1)
+    kb = [
+        [
+            types.InlineKeyboardButton(
+                text="Чтобы указать, что эта переменная имеет самое важное значение в программе", callback_data="True")
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="Чтобы переменную можно было изменять за пределами текущей области видимости", callback_data="False")
+        ]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+    await callback.message.answer("Для чего нужно ключевое слово global?", reply_markup=keyboard)
+
+
+@tg_story_router.callback_query(Form.seven, F.data == "True")
+async def eight(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Form.eight)
+    await callback.message.delete_reply_markup()
+    await callback.message.answer("Правильно! Следующий вопрос.")
+    time.sleep(1)
+    kb = [
+        [
+            types.InlineKeyboardButton(
+                text="Функция, которая курсирует между модулями", callback_data="False")
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="Функция которая возвращает саму себя", callback_data="True")
+        ]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+    await callback.message.answer("Что такое рекурсивная функция?", reply_markup=keyboard)
+
+
+@tg_story_router.callback_query(Form.eight, F.data == "True")
+async def nine(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Form.nine)
+    await callback.message.delete_reply_markup()
+    mobs[callback.message.from_user.id] = "Дедка"
+    await callback.message.answer("Правильно! И покатился колобок себе дальше.")
+    await callback.message.answer("""Докатился колобок обратно до избушки к старику и старухе.
+Здравствуй, колобок! Где ты был? Какой ты хорошенький. Колобок, колобок! Я тебя съем.
+— Не ешь меня, старушка! Я тебе на вопросы отвечу и ты меня отпустишь, — сказал колобок:""")
+    time.sleep(1)
+    kb = [
+        [
+            types.InlineKeyboardButton(
+                text="строковая операция для получения подстроки или некоторой части списка.", callback_data="True")
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="числовая операция для создания подстроки или некоторой части списка", callback_data="False")
+        ]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+    await callback.message.answer("Срезы – это", reply_markup=keyboard)
+
+
+@tg_story_router.callback_query(Form.nine, F.data == "True")
+async def ten(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Form.ten)
+    await callback.message.delete_reply_markup()
+    await callback.message.answer("Правильно! Следующий вопрос.")
+    time.sleep(1)
+    kb = [
+        [
+            types.InlineKeyboardButton(
+                text="Числа, множества", callback_data="False")
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="Числа, строки, кортежи", callback_data="True")
+        ]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+    await callback.message.answer("В качестве ключа словаря могут быть использованы:", reply_markup=keyboard)
+
+
+@tg_story_router.callback_query(Form.ten, F.data == "True")
+async def result(callback: types.CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.delete_reply_markup()
+    await callback.message.answer("""— Какая славно! — сказала старушка. — Но ведь я, колобок, стара стала, плохо слышу; сядь-ка ко мне ближе
+— Спасибо, колобок!  И съела колобка…""", 
+        reply_markup=ReplyKeyboardMarkup(
+                    keyboard=[
+                        [
+                            KeyboardButton(text="/start"),
+                        ]
+                    ],
+                    resize_keyboard=True,
+                ))
