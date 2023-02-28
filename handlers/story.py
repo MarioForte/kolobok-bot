@@ -2,15 +2,17 @@ from aiogram import Router, types, F
 from aiogram.filters import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 import time
 from collections import defaultdict
 
 
-database = defaultdict(int)
-mobs = {}
-tg_story_router = Router()
+database = defaultdict(int) # База данных «ключ-значение» для хранения количества попыток пользователя с числовым значением по умолчанию
+mobs = {} # По такому же принципу хранит того, кто съел колобка на данном этапе
+tg_story_router = Router() # Идентификация роутера
 
 
+# Описание десяти шагов истории
 class Form(StatesGroup):
     one = State()
     two = State()
@@ -24,34 +26,36 @@ class Form(StatesGroup):
     ten = State()
 
 
+# Обработчик для неправильного ответа
 @tg_story_router.callback_query(F.data == "False")
 async def decr(callback: types.CallbackQuery):
-    database[callback.message.from_user.id] -= 1
-    if database[callback.message.from_user.id] <= 0:
-        await callback.message.delete_reply_markup()
-        await callback.message.answer(f"{mobs[callback.message.from_user.id]} съел колобка.")
-        await start(callback.message)
+    database[callback.from_user.id] -= 1 # Вычитает одну попытку
+    if database[callback.from_user.id] <= 0: # если не осталось попыток
+        await callback.message.delete_reply_markup() # удаление клавиатуры
+        await callback.message.answer(f"{mobs[callback.from_user.id]} съел колобка.")
+        await start(callback.message) # рестарт
     else:
-        await callback.message.answer(f"Неправильно! Осталось {mobs[callback.message.from_user.id]} попыток")
+        await callback.message.answer(f"Неправильно! Осталось {database[callback.from_user.id]} попыток")
 
 
 @tg_story_router.message(Command(commands="start"))
 async def start(message: types.Message):
-    kb = [[types.InlineKeyboardButton(text="Начать", callback_data='one')]]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-    database[message.from_user.id] = 3
-    await message.answer(reply_markup=keyboard, text="Представляю интерактивное приключение. В этом приключении нам надо помочь колобку добраться до дома. Чтобы добраться до дома нужно будет ответить на 2 вопроса у каждого персонажа, которые встанут на пути у колобка. Проект предоставлен в виде \"вопрос-ответ\".")
+    kb = [[types.InlineKeyboardButton(text="Начать", callback_data='one')]] # создание клавиатуры, перебрасивыющей на первый вопрос
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb) 
+    database[message.from_user.id] = 3 # Добавление трех попыток пользователю
+    await message.answer(reply_markup=keyboard,
+                         text="Представляю интерактивное приключение. В этом приключении нам надо помочь колобку добраться до дома. Чтобы добраться до дома нужно будет ответить на 2 вопроса у каждого персонажа, которые встанут на пути у колобка. Проект предоставлен в виде \"вопрос-ответ\".")
 
 
 @tg_story_router.callback_query(F.data == "one")
 async def one(callback: types.CallbackQuery, state: FSMContext):
-    await state.set_state(Form.one)
-    await callback.message.delete_reply_markup()
-    mobs[callback.message.from_user.id] = "Заяц"
+    await state.set_state(Form.one) # устанавливаем первый вопрос
+    await callback.message.delete_reply_markup() # удаляем прошлую клавиатуру из сообщения
+    mobs[callback.from_user.id] = "Заяц" # установка того, кто съест колобка при окончании попыток
     await callback.message.answer("""Катится колобок по дороге, а навстречу ему заяц:
 — Колобок, колобок! Я тебя съем.
-— Не ешь меня, косой зайчик! Я тебе на вопросы отвечу и ты меня отпустишь.""")
-    time.sleep(1)
+— Не ешь меня, косой зайчик! Я тебе на вопросы отвечу и ты меня отпустишь.""", reply_markup=ReplyKeyboardRemove())
+    time.sleep(1) # пауза в одну секунду
     kb = [
         [
             types.InlineKeyboardButton(
@@ -61,12 +65,12 @@ async def one(callback: types.CallbackQuery, state: FSMContext):
             types.InlineKeyboardButton(
                 text="вывода данных на экран", callback_data="True")
         ]
-    ]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+    ] # варианты ответа
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb) 
     await callback.message.answer(text="Команда print() используется для", reply_markup=keyboard)
 
 
-@tg_story_router.callback_query(Form.one, F.data == "True")
+@tg_story_router.callback_query(Form.one, F.data == "True") # Условие and (И): Ответ должен быть от первого вопроса и правильным.
 async def two(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Form.two)
     await callback.message.delete_reply_markup()
@@ -90,7 +94,7 @@ async def two(callback: types.CallbackQuery, state: FSMContext):
 async def three(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Form.three)
     await callback.message.delete_reply_markup()
-    mobs[callback.message.from_user.id] = "Волк"
+    mobs[callback.from_user.id] = "Волк"
     await callback.message.answer("Правильно! И покатился колобок себе дальше.")
     await callback.message.answer("""Катится колобок, а навстречу ему волк:
 — Колобок, колобок! Я тебя съем!
@@ -135,7 +139,7 @@ async def four(callback: types.CallbackQuery, state: FSMContext):
 async def five(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Form.five)
     await callback.message.delete_reply_markup()
-    mobs[callback.message.from_user.id] = "Медведь"
+    mobs[callback.from_user.id] = "Медведь"
     await callback.message.answer("Правильно!")
     await callback.message.answer("""И покатился себе дальше; только волк его и видел!
 Катится колобок, а навстречу ему медведь:
@@ -181,7 +185,7 @@ async def six(callback: types.CallbackQuery, state: FSMContext):
 async def seven(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Form.seven)
     await callback.message.delete_reply_markup()
-    mobs[callback.message.from_user.id] = "Лис"
+    mobs[callback.from_user.id] = "Лис"
     await callback.message.answer("Правильно!")
     await callback.message.answer("""И опять укатился, только медведь его и видел!
 Катится, катится «колобок, а навстречу ему лис:
@@ -192,11 +196,11 @@ async def seven(callback: types.CallbackQuery, state: FSMContext):
     kb = [
         [
             types.InlineKeyboardButton(
-                text="Чтобы указать, что эта переменная имеет самое важное значение в программе", callback_data="True")
+                text="Чтобы указать, что эта переменная имеет самое важное значение в программе", callback_data="False")
         ],
         [
             types.InlineKeyboardButton(
-                text="Чтобы переменную можно было изменять за пределами текущей области видимости", callback_data="False")
+                text="Чтобы переменную можно было изменять за пределами текущей области видимости", callback_data="True")
         ]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
@@ -227,7 +231,7 @@ async def eight(callback: types.CallbackQuery, state: FSMContext):
 async def nine(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Form.nine)
     await callback.message.delete_reply_markup()
-    mobs[callback.message.from_user.id] = "Дедка"
+    mobs[callback.from_user.id] = "Дедка"
     await callback.message.answer("Правильно! И покатился колобок себе дальше.")
     await callback.message.answer("""Докатился колобок обратно до избушки к старику и старухе.
 Здравствуй, колобок! Где ты был? Какой ты хорошенький. Колобок, колобок! Я тебя съем.
@@ -269,15 +273,15 @@ async def ten(callback: types.CallbackQuery, state: FSMContext):
 
 @tg_story_router.callback_query(Form.ten, F.data == "True")
 async def result(callback: types.CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.message.delete_reply_markup()
+    await state.clear() # очистка шагов истории
+    await callback.message.delete_reply_markup() # удаление клавиатуры
     await callback.message.answer("""— Какая славно! — сказала старушка. — Но ведь я, колобок, стара стала, плохо слышу; сядь-ка ко мне ближе
-— Спасибо, колобок!  И съела колобка…""", 
-        reply_markup=ReplyKeyboardMarkup(
-                    keyboard=[
-                        [
-                            KeyboardButton(text="/start"),
-                        ]
-                    ],
-                    resize_keyboard=True,
-                ))
+— Спасибо, колобок!  И съела колобка…""",
+                                  reply_markup=ReplyKeyboardMarkup(
+                                      keyboard=[
+                                          [
+                                              KeyboardButton(text="/start"), # добавление кнопки перезапуска
+                                          ]
+                                      ],
+                                      resize_keyboard=True, # адаптивный размер кнопки
+                                  ))
